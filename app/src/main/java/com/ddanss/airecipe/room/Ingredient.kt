@@ -7,6 +7,7 @@ import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Entity
 data class Ingredient(
@@ -18,17 +19,17 @@ data class Ingredient(
 @Dao
 interface IngredientDao {
     @Query("SELECT * FROM ingredient")
-    fun getAll(): List<Ingredient>
+    fun getAll(): Flow<List<Ingredient>>
 
     @Query("SELECT * FROM ingredient WHERE id IN (:ingredientIds)")
-    fun loadAllByIds(ingredientIds: IntArray): List<Ingredient>
+    suspend fun loadAllByIds(ingredientIds: IntArray): List<Ingredient>
 
     @Query("SELECT * FROM ingredient WHERE name LIKE :name LIMIT 1")
-    fun findByName(name: String): Ingredient
+    suspend fun findByName(name: String): Ingredient
 
     @Insert
-    fun insertAll(vararg ingredients: Ingredient)
+    suspend fun insertAll(vararg ingredients: Ingredient)
 
     @Delete
-    fun delete(ingredient: Ingredient)
+    suspend fun delete(ingredient: Ingredient)
 }
