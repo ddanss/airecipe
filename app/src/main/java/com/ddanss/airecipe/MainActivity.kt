@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -77,12 +78,12 @@ fun MainNavigationTab(modifier: Modifier = Modifier) {
             }
         }
     ){ contentPadding ->
-        NavHost(navController, startDestination = startDestination.route) {
+        NavHost(navController, startDestination = startDestination.route, modifier = Modifier.padding(contentPadding)) {
             Destination.entries.forEach { destination ->
                 composable(destination.route) {
                     when(destination) {
-                        Destination.HOME -> HomeScreen(contentPadding)
-                        Destination.HISTORY -> HistoryScreen(contentPadding)
+                        Destination.HOME -> HomeScreen()
+                        Destination.HISTORY -> HistoryScreen()
 
                     }
                 }
