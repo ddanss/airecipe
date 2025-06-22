@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 data class Ingredient(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "exists") val exists: Boolean,
+    @ColumnInfo(name = "checked") val checked: Boolean,
 )
 
 @Dao
@@ -35,4 +35,10 @@ interface IngredientDao {
 
     @Query("DELETE FROM ingredient")
     suspend fun deleteAll()
+
+    @Query("UPDATE ingredient SET checked = :checked WHERE id = :id")
+    suspend fun updateChecked(id: Int, checked: Boolean)
+
+    @Query("SELECT * FROM ingredient WHERE checked = 1")
+    fun getAllChecked(): Flow<List<Ingredient>>
 }

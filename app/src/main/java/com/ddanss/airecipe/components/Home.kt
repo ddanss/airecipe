@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -20,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -51,11 +53,7 @@ fun HomeScreen() {
                 items = ingredients.value,
                 key = { ingredient -> ingredient.id }
             ) { ingredient ->
-                Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = ingredient.name,
-                    fontSize = 20.sp
-                )
+                IngredientRow(ingredient)
             }
         }
     }
@@ -64,18 +62,43 @@ fun HomeScreen() {
             onDismissRequest = { openAddDialog.value = false },
             onConfirm = {
                 scope.launch {
-                    val ingredient = Ingredient(name = "carrot", exists = true)
+                    val ingredient = Ingredient(name = "carrot", checked = true)
                     db.ingredientDao().insertAll(ingredient)
-                    val ingredient2 = Ingredient(name = "onion", exists = true)
+                    val ingredient2 = Ingredient(name = "onion", checked = true)
                     db.ingredientDao().insertAll(ingredient2)
-                    val ingredient3 = Ingredient(name = "potato", exists = true)
+                    val ingredient3 = Ingredient(name = "potato", checked = true)
                     db.ingredientDao().insertAll(ingredient3)
-                    val ingredient4 = Ingredient(name = "tofu", exists = true)
+                    val ingredient4 = Ingredient(name = "tofu", checked = true)
                     db.ingredientDao().insertAll(ingredient4)
                 }
                 openAddDialog.value = false
             }
         )
+    }
+}
+
+@Composable
+fun IngredientRow(ingredient: Ingredient) {
+    val context = LocalContext.current
+    val db = (context.applicationContext as MainApplication).database
+    val scope = rememberCoroutineScope()
+    val ingredientsDB = db.ingredientDao()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            modifier = Modifier.padding(8.dp),
+            text = ingredient.name,
+            fontSize = 20.sp
+        )
+        Checkbox(checked = ingredient.checked, onCheckedChange = {
+            scope.launch {
+                ingredientsDB.updateChecked(ingredient.id, it)
+            }
+        })
     }
 }
 

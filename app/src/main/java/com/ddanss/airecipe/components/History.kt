@@ -50,7 +50,7 @@ fun HistoryScreen() {
     val scope = rememberCoroutineScope()
 
     val db = (context.applicationContext as MainApplication).database
-    val ingredientsOnHand = db.ingredientDao().getAll().collectAsState(initial = emptyList())
+    val ingredientsOnHand = db.ingredientDao().getAllChecked().collectAsState(initial = emptyList())
     val recipes = db.recipeDao().getAll().collectAsState(initial = emptyList())
 
     Column {
@@ -93,7 +93,6 @@ fun HistoryScreen() {
             }
         }
     }
-
 }
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -122,7 +121,7 @@ suspend fun searchForIngredient(context: Context, style: String, ingredientsOnHa
         prompt = prompt.plus(" I want something $style.")
     }
     if (ingredientsOnHand.value.isNotEmpty()) {
-        prompt = prompt.plus(" I have ${ingredientsOnHand.value.joinToString(", ")} on hand.")
+        prompt = prompt.plus(" I have only ${ingredientsOnHand.value.joinToString(", ")} on hand.")
     }
     val response = aiModel.generateContent(prompt)
 
