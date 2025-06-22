@@ -46,8 +46,8 @@ enum class Destination(
     val icon: ImageVector,
     val contentDescription: String
 ) {
-    HOME("home", "Home", Icons.Default.Home, "Home"),
-    HISTORY("history", "History", Icons.Default.Favorite, "History")
+    HOME("home", "Ingredients", Icons.Default.Home, "Home"),
+    HISTORY("history", "Recipes", Icons.Default.Favorite, "History")
 }
 
 @Composable
