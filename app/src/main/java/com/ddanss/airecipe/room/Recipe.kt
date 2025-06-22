@@ -8,17 +8,19 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.JsonArray
 
 @Entity
 data class Recipe(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    @ColumnInfo(name = "title") val name: String,
+    @ColumnInfo(name = "title") val title: String,
+    @ColumnInfo(name = "ingredients") val ingredients: String,
     @ColumnInfo(name = "instruction") val instruction: String,
 )
 
 @Dao
 interface RecipeDao {
-    @Query("SELECT * FROM recipe")
+    @Query("SELECT * FROM recipe ORDER BY id DESC")
     fun getAll(): Flow<List<Recipe>>
 
     @Query("SELECT * FROM recipe WHERE id IN (:recipeIds)")

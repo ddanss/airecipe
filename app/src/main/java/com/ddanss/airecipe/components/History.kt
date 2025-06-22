@@ -32,8 +32,13 @@ import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.ai.type.Schema
 import com.google.firebase.ai.type.generationConfig
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -45,7 +50,7 @@ fun HistoryScreen() {
     val scope = rememberCoroutineScope()
 
     val db = (context.applicationContext as MainApplication).database
-    val ingredients = db.ingredientDao().getAll().collectAsState(initial = emptyList())
+    val ingredientsOnHand = db.ingredientDao().getAll().collectAsState(initial = emptyList())
     val recipes = db.recipeDao().getAll().collectAsState(initial = emptyList())
 
     Column {
@@ -69,7 +74,7 @@ fun HistoryScreen() {
                         searchForIngredient(
                             context = context,
                             style = textState,
-                            ingredients = ingredients
+                            ingredientsOnHand = ingredientsOnHand
                         )
                     } },
                 modifier = Modifier
@@ -84,14 +89,15 @@ fun HistoryScreen() {
                 items = recipes.value,
                 key = { recipe -> recipe.id }
             ) { recipe ->
-                Text(recipe.name)
+                Text(recipe.title)
             }
         }
     }
 
 }
 
-suspend fun searchForIngredient(context: Context, style: String, ingredients: State<List<Ingredient>>) {
+@OptIn(DelicateCoroutinesApi::class)
+suspend fun searchForIngredient(context: Context, style: String, ingredientsOnHand: State<List<Ingredient>>) {
     val aiModel = Firebase.ai(backend = GenerativeBackend.googleAI())
         .generativeModel("gemini-2.5-flash",
             generationConfig = generationConfig {
@@ -111,17 +117,25 @@ suspend fun searchForIngredient(context: Context, style: String, ingredients: St
                 )
             })
 
-    val prompt = "Give me one cooking recipe. I want something that is $style."
+    var prompt = "Give me one cooking recipe."
+    if (style.isNotBlank()) {
+        prompt = prompt.plus(" I want something $style.")
+    }
+    if (ingredientsOnHand.value.isNotEmpty()) {
+        prompt = prompt.plus(" I have ${ingredientsOnHand.value.joinToString(", ")} on hand.")
+    }
     val response = aiModel.generateContent(prompt)
 
     val jsonElement = response.text?.let { Json.parseToJsonElement(it) }
     if (jsonElement != null) {
         val title = jsonElement.jsonObject["title"]?.jsonPrimitive?.content
+        val ingredients = jsonElement.jsonObject["ingredients"]?.jsonArray ?: buildJsonArray {  }
         val instruction = jsonElement.jsonObject["instructions"]?.jsonPrimitive?.content
 
         val db = (context.applicationContext as MainApplication).database
-        val recipe = Recipe(name = title ?: "", instruction = instruction ?: "")
-        db.recipeDao().insertAll(recipe)
+        GlobalScope.launch(Dispatchers.IO) {
+            val recipe = Recipe(title = title ?: "", ingredients = ingredients.toString(), instruction = instruction ?: "")
+            db.recipeDao().insertAll(recipe)
+        }
     }
-    Log.d("AI", "Response: $response")
 }
