@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<journey name="Add Ingredients">
+    <description>Add Ingredients and uncheck one</description>
+    <actions>
+        <action>Add Onion to the list.</action>
+        <action>Verify Onion was added to list and that it is checked.</action>
+    </actions>
+</journey>
