@@ -1,16 +1,28 @@
 package com.ddanss.airecipe.components
 
 import android.content.Context
-import android.util.Log
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -24,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
+import androidx.compose.ui.window.Dialog
 import com.ddanss.airecipe.MainApplication
 import com.ddanss.airecipe.room.Ingredient
 import com.ddanss.airecipe.room.Recipe
@@ -38,6 +52,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -52,6 +67,8 @@ fun HistoryScreen() {
     val db = (context.applicationContext as MainApplication).database
     val ingredientsOnHand = db.ingredientDao().getAllChecked().collectAsState(initial = emptyList())
     val recipes = db.recipeDao().getAll().collectAsState(initial = emptyList())
+
+    var recipeToDisplay by remember { mutableStateOf(recipes.value.firstOrNull()) }
 
     Column {
         Box(
@@ -89,7 +106,63 @@ fun HistoryScreen() {
                 items = recipes.value,
                 key = { recipe -> recipe.id }
             ) { recipe ->
-                Text(recipe.title)
+                RecipeRow(recipe, onClick = {
+                    recipeToDisplay = recipe
+                })
+            }
+        }
+    }
+
+    recipeToDisplay?.let {
+        RecipeDialog(
+            recipe = it,
+            onDismissRequest = {
+                recipeToDisplay = null
+            }
+        )
+    }
+}
+
+@Composable
+fun RecipeRow(recipe: Recipe, onClick: () -> Unit) {
+    Text(
+        text = recipe.title,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    )
+}
+
+@Composable
+fun RecipeDialog(
+    recipe: Recipe,
+    onDismissRequest: () -> Unit
+) {
+    val scrollState = rememberScrollState()
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+        Card(
+            modifier = Modifier
+                .heightIn(max = 600.dp)
+        ) {
+            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+                Text( modifier = Modifier.weight(1f).padding(end = 8.dp), text = "Title: " + recipe.title)
+                IconButton( onClick = { onDismissRequest() }) {
+                    Icon(Icons.Filled.Close, "Close button")
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .verticalScroll(scrollState)
+            ) {
+                val ingredientsJson = Json.parseToJsonElement(recipe.ingredients)
+                ingredientsJson.jsonArray.forEach { ingredientEle ->
+                    val ingredient = Json.decodeFromJsonElement<Map<String, String>>(ingredientEle)
+                    Text(text = " " + ingredient["name"] + " (" + ingredient["quantity"] + " " + ingredient["unit"] + ")")
+                }
+                Text(text = recipe.instruction, modifier = Modifier.padding(top = 16.dp))
             }
         }
     }
@@ -107,7 +180,9 @@ suspend fun searchForIngredient(context: Context, style: String, ingredientsOnHa
                         "ingredients" to Schema.array(
                             Schema.obj(
                                 mapOf(
-                                    "name" to Schema.string()
+                                    "name" to Schema.string(),
+                                    "quantity" to Schema.string(),
+                                    "unit" to Schema.string()
                                 )
                             )
                         ),

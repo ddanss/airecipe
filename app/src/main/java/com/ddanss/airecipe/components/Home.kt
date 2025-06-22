@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -87,9 +88,13 @@ fun IngredientRow(ingredient: Ingredient) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(8.dp)
+                .weight(1f)
+                .padding(end = 8.dp),
             text = ingredient.name,
-            fontSize = 20.sp
+            fontSize = 20.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Checkbox(checked = ingredient.checked, onCheckedChange = {
             scope.launch {

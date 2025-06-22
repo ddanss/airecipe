@@ -8,7 +8,6 @@ import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
-import kotlinx.serialization.json.JsonArray
 
 @Entity
 data class Recipe(
