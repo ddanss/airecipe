@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<journey name="Add recipe">
+    <description>Search for sweet recipe</description>
+    <actions>
+        <action>Add carrot and flour to ingredients if it's not already there. Go to recipes and
+            search for something sweet.</action>
+        <action>Verify a sweet recipe has been added.</action>
+    </actions>
+</journey>

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,6 +65,7 @@ fun HistoryScreen() {
     val context = LocalContext.current
     var textState by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
 
     val db = (context.applicationContext as MainApplication).database
     val ingredientsOnHand = db.ingredientDao().getAllChecked().collectAsState(initial = emptyList())
@@ -89,12 +91,18 @@ fun HistoryScreen() {
             FloatingActionButton (
                 onClick = {
                     scope.launch {
-                        searchForIngredient(
-                            context = context,
-                            style = textState,
-                            ingredientsOnHand = ingredientsOnHand
-                        )
-                    } },
+                        isLoading = true
+                        try {
+                            searchForIngredient(
+                                context = context,
+                                style = textState,
+                                ingredientsOnHand = ingredientsOnHand
+                            )
+                        } finally {
+                            isLoading = false
+                        }
+                    }
+                },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(8.dp)
@@ -121,6 +129,10 @@ fun HistoryScreen() {
                 recipeToDisplay = null
             }
         )
+    }
+
+    if (isLoading) {
+        LoadingDialog()
     }
 }
 
@@ -166,6 +178,26 @@ fun RecipeDialog(
                     Text(text = " " + ingredient["name"] + " (" + ingredient["quantity"] + " " + ingredient["unit"] + ")")
                 }
                 Text(text = recipe.instruction, modifier = Modifier.padding(top = 16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun LoadingDialog() {
+    Dialog(onDismissRequest = { /* Dialog cannot be dismissed by clicking outside */ }) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator(modifier = Modifier.padding(bottom = 16.dp))
+                Text("Searching for recipes...")
             }
         }
     }
