@@ -13,6 +13,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -92,9 +93,9 @@ fun IngredientRow(ingredient: Ingredient) {
                 .weight(1f)
                 .padding(end = 8.dp),
             text = ingredient.name,
-            fontSize = 20.sp,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyLarge
         )
         Checkbox(checked = ingredient.checked, onCheckedChange = {
             scope.launch {
