@@ -26,10 +26,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.ddanss.airecipe.MainApplication
 import com.ddanss.airecipe.room.Ingredient
+import com.ddanss.airecipe.room.Recipe
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
+import com.google.firebase.ai.type.Schema
+import com.google.firebase.ai.type.generationConfig
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 
 @Composable
@@ -40,6 +46,8 @@ fun HistoryScreen() {
 
     val db = (context.applicationContext as MainApplication).database
     val ingredients = db.ingredientDao().getAll().collectAsState(initial = emptyList())
+    val recipes = db.recipeDao().getAll().collectAsState(initial = emptyList())
+
     Column {
         Box(
             modifier = Modifier
@@ -72,8 +80,11 @@ fun HistoryScreen() {
             }
         }
         LazyColumn() {
-            items(texts) { text ->
-                Text(text)
+            items(
+                items = recipes.value,
+                key = { recipe -> recipe.id }
+            ) { recipe ->
+                Text(recipe.name)
             }
         }
     }
@@ -82,20 +93,35 @@ fun HistoryScreen() {
 
 suspend fun searchForIngredient(context: Context, style: String, ingredients: State<List<Ingredient>>) {
     val aiModel = Firebase.ai(backend = GenerativeBackend.googleAI())
-        .generativeModel("gemini-2.5-flash")
+        .generativeModel("gemini-2.5-flash",
+            generationConfig = generationConfig {
+                responseMimeType = "application/json"
+                responseSchema = Schema.obj(
+                    mapOf(
+                        "title" to Schema.string(),
+                        "ingredients" to Schema.array(
+                            Schema.obj(
+                                mapOf(
+                                    "name" to Schema.string()
+                                )
+                            )
+                        ),
+                        "instructions" to Schema.string()
+                    )
+                )
+            })
 
     val prompt = "Give me one cooking recipe. I want something that is $style."
     val response = aiModel.generateContent(prompt)
+
+    val jsonElement = response.text?.let { Json.parseToJsonElement(it) }
+    if (jsonElement != null) {
+        val title = jsonElement.jsonObject["title"]?.jsonPrimitive?.content
+        val instruction = jsonElement.jsonObject["instructions"]?.jsonPrimitive?.content
+
+        val db = (context.applicationContext as MainApplication).database
+        val recipe = Recipe(name = title ?: "", instruction = instruction ?: "")
+        db.recipeDao().insertAll(recipe)
+    }
     Log.d("AI", "Response: $response")
-
 }
-
-
-// test array of texts.
-val texts = listOf(
-    "This is a sample text",
-    "This is another sample text",
-    "This is a third sample text",
-    "This is a fourth sample text",
-    "This is a fifth sample text",
-)
