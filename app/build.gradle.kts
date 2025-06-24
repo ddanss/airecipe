@@ -20,6 +20,16 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val stub = "stub"
+            storeFile = file(project.findProperty("DDANSS_RELEASE_KEYSTORE_FILE")?.toString() ?: stub)
+            storePassword = project.findProperty("DDANSS_RELEASE_KEYSTORE_PASSWORD")?.toString() ?: "android"
+            keyAlias = project.findProperty("DDANSS_KEY_ALIAS")?.toString() ?: "androiddebugkey"
+            keyPassword = project.findProperty("DDANSS_KEY_PASSWORD")?.toString() ?: "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -27,6 +37,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

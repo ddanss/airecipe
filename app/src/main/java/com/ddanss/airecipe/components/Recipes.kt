@@ -22,7 +22,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -179,7 +181,11 @@ fun RecipeDialog(
                         Icon(Icons.Filled.Close, "Close button")
                     }
                 }
-                Divider(modifier = Modifier.padding(bottom = 16.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
 
                 Column(
                     modifier = Modifier
