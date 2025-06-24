@@ -4,10 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
@@ -21,6 +19,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -43,11 +43,11 @@ class MainActivity : ComponentActivity() {
 enum class Destination(
     val route: String,
     val label: String,
-    val icon: ImageVector,
+    val icon: Any,
     val contentDescription: String
 ) {
-    HOME("home", "Ingredients", Icons.Default.Home, "Home"),
-    HISTORY("history", "Recipes", Icons.Default.Favorite, "History")
+    HOME("home", "Ingredients", R.drawable.icon_ingredients, "Home"),
+    HISTORY("history", "Recipes", R.drawable.icon_recipes, "History")
 }
 
 @Composable
@@ -62,13 +62,27 @@ fun MainNavigationTab(modifier: Modifier = Modifier) {
             NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
                 Destination.entries.forEachIndexed { index, destination ->
                     NavigationBarItem(
+                        modifier = Modifier.height(40.dp),
                         selected = selectedDestination == index,
                         onClick = {
                             selectedDestination = index
                             navController.navigate(destination.route)
                         },
                         icon = {
-                            Icon(destination.icon, contentDescription = destination.contentDescription)
+                            when (destination.icon) {
+                                is ImageVector -> {
+                                    Icon(
+                                        imageVector = destination.icon,
+                                        contentDescription = destination.contentDescription
+                                    )
+                                }
+                                is Int -> {
+                                    Icon(
+                                        painter = painterResource(id = destination.icon),
+                                        contentDescription = destination.contentDescription
+                                    )
+                                }
+                            }
                         },
                         label = {
                             Text(destination.label)
@@ -91,5 +105,3 @@ fun MainNavigationTab(modifier: Modifier = Modifier) {
         }
     }
 }
-
-
