@@ -19,12 +19,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -67,13 +67,14 @@ fun HomeScreen() {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding)
-                    .padding(16.dp), // Added extra padding for the text itself
+                    .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Start adding the ingredients you have!",
+                    text = "Start by adding your ingredients!",
                     style = MaterialTheme.typography.headlineSmall,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = Color.LightGray
                 )
             }
         } else {
@@ -202,17 +203,21 @@ fun AddDialog(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            TextField(
+            OutlinedTextField(
                 value = textState,
                 onValueChange = { textState = it },
                 label = { Text("Add an ingredient") },
                 maxLines = 1,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = { onDismissRequest() }) { Text(text = "Cancel") }
-                TextButton(onClick = { onConfirm(textState) }) { Text(text = "Add") }
+                TextButton(
+                    onClick = { onConfirm(textState) },
+                    enabled = textState.isNotBlank()
+                ) { Text(text = "Add") }
             }
         }
     }
