@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -38,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.window.Dialog
 import com.ddanss.airecipe.MainApplication
 import com.ddanss.airecipe.room.Ingredient
@@ -83,7 +80,7 @@ fun HistoryScreen() {
                 value = textState,
                 onValueChange = { textState = it },
                 label = { Text("I'm feeling like cooking something...") },
-                placeholder = { Text("hot, spicy, healthy") },
+                placeholder = { Text("EG: cold and healthy") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)

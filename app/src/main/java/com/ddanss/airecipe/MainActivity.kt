@@ -46,14 +46,14 @@ enum class Destination(
     val icon: Any,
     val contentDescription: String
 ) {
-    HOME("home", "Ingredients", R.drawable.icon_ingredients, "Home"),
-    HISTORY("history", "Recipes", R.drawable.icon_recipes, "History")
+    INGREDIENTS("ingredients", "Ingredients", R.drawable.icon_ingredients, "Ingredients"),
+    RECIPES("recipes", "Recipes", R.drawable.icon_recipes, "Recipes")
 }
 
 @Composable
 fun MainNavigationTab(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    val startDestination = Destination.HOME
+    val startDestination = Destination.INGREDIENTS
     var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
 
     Scaffold(
@@ -96,8 +96,8 @@ fun MainNavigationTab(modifier: Modifier = Modifier) {
             Destination.entries.forEach { destination ->
                 composable(destination.route) {
                     when(destination) {
-                        Destination.HOME -> HomeScreen()
-                        Destination.HISTORY -> HistoryScreen()
+                        Destination.INGREDIENTS -> HomeScreen()
+                        Destination.RECIPES -> HistoryScreen()
 
                     }
                 }
