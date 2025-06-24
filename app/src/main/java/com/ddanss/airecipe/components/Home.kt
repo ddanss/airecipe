@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -61,12 +62,30 @@ fun HomeScreen() {
             }
         }
     ) { contentPadding ->
-        LazyColumn (contentPadding = contentPadding) {
-            items(
-                items = ingredients.value,
-                key = { ingredient -> ingredient.id }
-            ) { ingredient ->
-                IngredientRow(ingredient)
+        if (ingredients.value.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding)
+                    .padding(16.dp), // Added extra padding for the text itself
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Start adding the ingredients you have!",
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            LazyColumn (
+                modifier = Modifier.padding(contentPadding)
+            ) {
+                items(
+                    items = ingredients.value,
+                    key = { ingredient -> ingredient.id }
+                ) { ingredient ->
+                    IngredientRow(ingredient)
+                }
             }
         }
     }
