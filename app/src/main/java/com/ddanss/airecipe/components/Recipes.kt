@@ -1,6 +1,7 @@
 package com.ddanss.airecipe.components
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,10 +49,9 @@ import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.ai.type.Schema
 import com.google.firebase.ai.type.generationConfig
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -71,7 +71,7 @@ fun HistoryScreen() {
     val ingredientsOnHand = db.ingredientDao().getAllChecked().collectAsState(initial = emptyList())
     val recipes = db.recipeDao().getAll().collectAsState(initial = emptyList())
 
-    var recipeToDisplay by remember { mutableStateOf(recipes.value.firstOrNull()) }
+    var recipeToDisplay by remember { mutableStateOf<Recipe?>(recipes.value.firstOrNull()) }
 
     Column {
         Box(
@@ -93,11 +93,12 @@ fun HistoryScreen() {
                     scope.launch {
                         isLoading = true
                         try {
-                            searchForIngredient(
+                            val newRecipe = searchForIngredient(
                                 context = context,
                                 style = textState,
                                 ingredientsOnHand = ingredientsOnHand
                             )
+                            recipeToDisplay = newRecipe
                         } finally {
                             isLoading = false
                         }
@@ -234,8 +235,7 @@ fun LoadingDialog() {
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
-suspend fun searchForIngredient(context: Context, style: String, ingredientsOnHand: State<List<Ingredient>>) {
+suspend fun searchForIngredient(context: Context, style: String, ingredientsOnHand: State<List<Ingredient>>): Recipe? {
     val aiModel = Firebase.ai(backend = GenerativeBackend.googleAI())
         .generativeModel("gemini-2.5-flash",
             generationConfig = generationConfig {
@@ -262,20 +262,36 @@ suspend fun searchForIngredient(context: Context, style: String, ingredientsOnHa
         prompt = prompt.plus(" I want something $style.")
     }
     if (ingredientsOnHand.value.isNotEmpty()) {
-        prompt = prompt.plus(" The only ingredients I have are ${ingredientsOnHand.value.joinToString(", ")}.")
+        prompt = prompt.plus(" The only ingredients I have are ${ingredientsOnHand.value.joinToString(", ") { it.name }}.")
     }
-    val response = aiModel.generateContent(prompt)
+    
+    return try {
+        val response = aiModel.generateContent(prompt)
+        val jsonElement = response.text?.let { Json.parseToJsonElement(it) }
+        
+        if (jsonElement != null) {
+            val title = jsonElement.jsonObject["title"]?.jsonPrimitive?.content
+            val ingredients = jsonElement.jsonObject["ingredients"]?.jsonArray ?: buildJsonArray {  }
+            val instruction = jsonElement.jsonObject["instructions"]?.jsonPrimitive?.content
 
-    val jsonElement = response.text?.let { Json.parseToJsonElement(it) }
-    if (jsonElement != null) {
-        val title = jsonElement.jsonObject["title"]?.jsonPrimitive?.content
-        val ingredients = jsonElement.jsonObject["ingredients"]?.jsonArray ?: buildJsonArray {  }
-        val instruction = jsonElement.jsonObject["instructions"]?.jsonPrimitive?.content
-
-        val db = (context.applicationContext as MainApplication).database
-        GlobalScope.launch(Dispatchers.IO) {
-            val recipe = Recipe(title = title ?: "", ingredients = ingredients.toString(), instruction = instruction ?: "")
-            db.recipeDao().insertAll(recipe)
+            if (title != null && instruction != null) {
+                val recipe = Recipe(title = title, ingredients = ingredients.toString(), instruction = instruction)
+                val db = (context.applicationContext as MainApplication).database
+                withContext(Dispatchers.IO) {
+                    db.recipeDao().insertAll(recipe)
+                }
+                recipe
+            } else {
+                null
+            }
+        } else {
+            null
         }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, "Oops, an error occurred while searching for recipes. Please try again.", Toast.LENGTH_LONG).show()
+        }
+        null
     }
 }
