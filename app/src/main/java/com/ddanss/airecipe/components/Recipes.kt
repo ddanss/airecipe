@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -17,7 +18,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -139,9 +142,9 @@ fun RecipeRow(recipe: Recipe, onClick: () -> Unit) {
         text = recipe.title,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(6.dp)
+            .padding(vertical = 8.dp, horizontal = 16.dp)
             .clickable { onClick() },
-        style = MaterialTheme.typography.bodyLarge
+        style = MaterialTheme.typography.titleMedium
     )
 }
 
@@ -155,26 +158,57 @@ fun RecipeDialog(
         Card(
             modifier = Modifier
                 .heightIn(max = 600.dp)
+                .padding(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Text( modifier = Modifier.weight(1f).padding(end = 8.dp), text = "Title: " + recipe.title)
-                IconButton( onClick = { onDismissRequest() }) {
-                    Icon(Icons.Filled.Close, "Close button")
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = recipe.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f).padding(end = 8.dp)
+                    )
+                    IconButton(onClick = { onDismissRequest() }) {
+                        Icon(Icons.Filled.Close, "Close button")
+                    }
                 }
-            }
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .verticalScroll(scrollState)
-            ) {
-                val ingredientsJson = Json.parseToJsonElement(recipe.ingredients)
-                ingredientsJson.jsonArray.forEach { ingredientEle ->
-                    val ingredient = Json.decodeFromJsonElement<Map<String, String>>(ingredientEle)
-                    Text(text = " " + ingredient["name"] + " (" + ingredient["quantity"] + " " + ingredient["unit"] + ")")
+                Divider(modifier = Modifier.padding(bottom = 16.dp))
+
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(scrollState)
+                ) {
+                    Text(
+                        text = "Ingredients",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    val ingredientsJson = Json.parseToJsonElement(recipe.ingredients)
+                    ingredientsJson.jsonArray.forEach { ingredientEle ->
+                        val ingredient = Json.decodeFromJsonElement<Map<String, String>>(ingredientEle)
+                        Text(
+                            text = "• " + ingredient["name"] + " (" + ingredient["quantity"] + " " + ingredient["unit"] + ")",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Instructions",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = recipe.instruction,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
                 }
-                Text(text = recipe.instruction, modifier = Modifier.padding(top = 16.dp))
             }
         }
     }
@@ -189,7 +223,7 @@ fun LoadingDialog() {
                 .padding(16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -228,7 +262,7 @@ suspend fun searchForIngredient(context: Context, style: String, ingredientsOnHa
         prompt = prompt.plus(" I want something $style.")
     }
     if (ingredientsOnHand.value.isNotEmpty()) {
-        prompt = prompt.plus(" I have only ${ingredientsOnHand.value.joinToString(", ")} on hand.")
+        prompt = prompt.plus(" The only ingredients I have are ${ingredientsOnHand.value.joinToString(", ")}.")
     }
     val response = aiModel.generateContent(prompt)
 
