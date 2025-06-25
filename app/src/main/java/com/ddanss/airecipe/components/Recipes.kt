@@ -46,7 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.ddanss.airecipe.MainApplication
 import com.ddanss.airecipe.room.Ingredient
@@ -304,12 +306,13 @@ fun ReportRecipeDialog(
                 TextField(
                     value = reportReason,
                     onValueChange = { reportReason = it },
-                    label = { Text("Why is this content inappropriate?") },
+                    label = { Text( style = MaterialTheme.typography.titleSmall, text = "Why is this content inappropriate?") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
                     singleLine = false,
-                    maxLines = 3
+                    maxLines = 3,
+                    textStyle = TextStyle(fontSize = 16.sp)
                 )
 
                 Text(
