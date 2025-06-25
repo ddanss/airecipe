@@ -74,6 +74,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.15.0"))
     implementation("com.google.firebase:firebase-ai")
     implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-functions-ktx")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

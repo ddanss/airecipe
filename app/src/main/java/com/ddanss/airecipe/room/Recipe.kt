@@ -17,6 +17,10 @@ data class Recipe(
     @ColumnInfo(name = "instruction") val instruction: String,
 )
 
+fun Recipe.toReportString(): String {
+    return this.title+"\n"+this.ingredients+"\n"+this.instruction
+}
+
 @Dao
 interface RecipeDao {
     @Query("SELECT * FROM recipe ORDER BY id DESC")
