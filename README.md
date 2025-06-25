@@ -1,5 +1,7 @@
 # AI Recipe Android App
 
+https://play.google.com/store/apps/details?id=com.ddanss.airecipe
+
 ### Add your ingredients, then search for a recipe. AI will recommend you something to cook.
 
 -----
